@@ -37,10 +37,10 @@ public class ColorCollector {
 	public final int BASE_WIDTH = 2448;
 	private final int BASE_HEIGHT = 3264;
 
-	private final int AERO = 90238;
-	private final int CHEMEX = 90239;
-	private final int FRENCHPRESS = 90240;
-	private final int OFFSET = 90238;
+	private final int AERO = 123;
+	private final int CHEMEX = 124;
+	private final int FRENCHPRESS = 125;
+	private final int OFFSET = 123;
 
 	// locations for the images as long as the class file is inside same folder
 	private final String AEROPRESS_LOCATION = "images/Aeropress/";

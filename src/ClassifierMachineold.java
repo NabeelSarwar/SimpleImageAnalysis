@@ -1,6 +1,8 @@
 /**
 /**
  * @author Nabeel Sarwar nsarwar@princeton.edu
+ * uses the WEKA library to classify each image on decision trees using 
+ * semi-supervised learning algorithms
  * 
     Copyright (C) <2014>  
 
@@ -23,11 +25,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.awt.Color;
-
-import javax.imageio.ImageIO;
 
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.NaiveBayes;
@@ -41,39 +39,42 @@ import weka.core.Instances;
  *
  */
 public class ClassifierMachine {
+	/*
+	private ColorCollector data;
+	private BufferedWriter output;
 	
+	private Classifier classifier;
+	private Instances dataset;
+	
+	public ClassifierMachine(BufferedImage testimage, File writable)
+	{
+		data = new ColorCollector();
+		try
+		{
+		
+			output = new BufferedWriter(new FileWriter ( writable));
+		}
+		catch (IOException e)
+		{
+			System.out.println("No such file possible to create");
+		}
+		
+	} */
 	
 	//the test image goes through a similar process to the 5 fold evaluation
 	private final int AERO = 90238;
 	private final int CHEMEX = 90239;
 	private final int FRENCHPRESS = 90240;
-	private final int OFFSET = 90238;
 	
-	private final String IMAGES_LOCATION = "images/TestIMG/";
-	
-	private ArrayList<BufferedImage> testimages;
+	private BufferedImage testimage;
 	private ColorCollector data;
 	private BufferedWriter output;
-	private Color[][][] testimageDifferences; //dimensions of [number of categories][size of the categories][normalized width of images]
-	//note, normalization is not used right now much
+	private Color[][][] testimageDifferences;
+	//dimensions of [number of categories][size of the categories][normalized width of images]
 	
-	public ClassifierMachine(BufferedImage testimage)
+	public ClassifierMachine(BufferedImage inputimage)
 	{
-		URL url = getClass().getResource(IMAGES_LOCATION);
-		File folder = new File(url.getPath());
-		File[] imageFiles = folder.listFiles();
-		BufferedImage[] images = new BufferedImage[imageFiles.length];
-		for (int i = 0; i < imageFiles.length; i++) {
-			try {
-				images[i] = ImageIO.read(imageFiles[i]);
-			}
-
-			catch (IOException exception) {
-				System.out.println("Some file was moved.");
-			}
-			testimages.add(images[i]);
-		}
-		
+		testimage = inputimage;
 		
 		try
 		{
@@ -85,60 +86,10 @@ public class ClassifierMachine {
 		}
 		
 		data = new ColorCollector();
-
-		for (int i = 0; i < testimages.size(); i++)
-		{
-			testimageDifferences = data.test(testimages.get(i));
-			
-			try {
-				output.write(imageFiles[i].getName() + "	" +  analyze( testimageDifferences, AERO) );
-				output.write(imageFiles[i].getName() + "	" +  analyze( testimageDifferences, CHEMEX) );
-				output.write(imageFiles[i].getName() + "	" +  analyze( testimageDifferences, FRENCHPRESS) );
-			} catch (IOException e) {
-				e.printStackTrace(); //this try/catch is here in case output was not able to be opened
-			}
-			
-		}
-		
-		//should not need to need to write anymore if we are done analyzing
-		try {
-			output.close();
-		} catch (IOException e) {
-			
-			e.printStackTrace();
-		}
-		
+		testimageDifferences = data.test(testimage);
 	}
 	
-	private boolean analyze(Color[][][] bigArrayOfDifferences, int whichArray) throws IOException //throws exception from output
-	{
-		boolean match = false; //burden of proof on us
-		Color[][] testdifferences = bigArrayOfDifferences[whichArray-OFFSET]; //this is made to not be out of bounds by the constants
-		Color[][] standard;
-		
-		/*
-		 * BIG NOTE: MUST FIND A WAY TO GENERALIZE THIS. 
-		 */
-		switch (whichArray) 
-		{
-		
-			case AERO:
-				standard = data.getAero();
-				break;
-			case CHEMEX:
-				standard = data.getChemex();
-			case FRENCHPRESS:
-				standard = data.getFrenchPress();
-			default:
-				output.write("Using Aero as default because of invalid input");
-				standard = data.getAero();
-				break;
-		}
-		//implement 90% confidence interval code
-		return match;
-	}
-	
-	/* might be useful later but I decided on another way to analyze equality
+	/* might be useful later but I decided on another way to do this
 	public double distance (Color[][] test, Color[][] category) throws Exception
 	{
 		//problem of error hiding if there  are errors in the dimensions of width after this check
