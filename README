@@ -1,0 +1,5 @@
+Simple image analysis using Weka. By using the color differences in the images and normalizing them, we can use this data to classify incoming images.
+
+The steps can be generalized to add filters and use other classifying algorithm. 
+
+The two main classes are the ColorCollector and ClassifierMachine. The ClassifierMachine uses simple Bayesian classification now. It will use k-nearest neighbor in addition at some point in the future.
