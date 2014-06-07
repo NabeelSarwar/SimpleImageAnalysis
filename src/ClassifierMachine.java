@@ -89,11 +89,11 @@ public class ClassifierMachine {
 			testimageDifferences = data.test(testimages.get(i));
 
 			try {
-				output.write(imageFiles[i].getName() + "	"
+				output.write(imageFiles[i].getName() + " match for Aero	"
 						+ analyze(testimageDifferences, AERO));
-				output.write(imageFiles[i].getName() + "	"
+				output.write(imageFiles[i].getName() + " match for Chemex	"
 						+ analyze(testimageDifferences, CHEMEX));
-				output.write(imageFiles[i].getName() + "	"
+				output.write(imageFiles[i].getName() + " match for Frenchpress	"
 						+ analyze(testimageDifferences, FRENCHPRESS));
 			} catch (IOException e) {
 				e.printStackTrace(); // this try/catch is here in case output

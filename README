@@ -1,5 +1,24 @@
-Simple image analysis using Weka. By using the color differences in the images and normalizing them, we can use this data to classify incoming images.
+Simple image analysis using a simple decision tree process.
+Different training sets for each category are done. The images for each category are put in separate folders and must be of format: jpeg, jpg, or png for now.
 
-The steps can be generalized to add filters and use other classifying algorithm. 
+An Color array of dimensions (number of images) x (normalized width) is done for each category. This is how it is done:
+To create this array for a category, each image is taken at once and the pixel differences per column are done result in a (number of images -1) x (normalized width) x ( column heights).
+The averages are done for each height result in (number of images -1) x (normalized width).
 
-The two main classes are the ColorCollector and ClassifierMachine. The ClassifierMachine uses simple Bayesian classification now. It will use k-nearest neighbor in addition at some point in the future.
+Averages are done across the (n -1) images, and this is juxtaposed with the other images result in an average difference array of (number of images) x (normalized width).
+
+To test the test cases, the test image is compared to the different training images, resulting in a Color array of the same size. 
+
+
+Matches are true for a category when at least 90% of the columns match up and at least 60% of the training images compared to agree with the 90% restriction.
+
+
+Implementations to make the algorithm better.
+
+1. Translate images that show signs of translation invariance (case by case basis probable).
+
+2. Better weighting for center of the images.
+
+3. Comparison with gaussian filters (metals reflecting could be very useful.
+
+4. With more images, standard deviation of pixel differences can be used to better do comparisons using a standard normal distribution. With lower number of images, a Laplace or Fourier transform can be done to smooth out edges.
