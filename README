@@ -12,6 +12,9 @@ To test the test cases, the test image is compared to the different training ima
 
 Matches are true for a category when at least 90% of the columns match up and at least 60% of the training images compared to agree with the 90% restriction.
 
+The results are displayed in a file called “output.txt” and formatted as:
+“[Name of file 1]   match for [category]  [true or false]
+
 
 Implementations to make the algorithm better.
 
