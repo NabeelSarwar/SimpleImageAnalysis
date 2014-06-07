@@ -59,7 +59,6 @@ public class ClassifierMachine {
 		URL url = ClassLoader.getSystemResource(IMAGES_LOCATION);
 		File folder = new File(url.getPath());
 		File[] imageFiles = folder.listFiles();
-		BufferedImage[] images = new BufferedImage[imageFiles.length];
 		testimages = new ArrayList<BufferedImage>();
 		for (int i = 0; i < imageFiles.length; i++) {
 			if (imageFiles[i].getName().contains("jpeg ")
