@@ -29,150 +29,193 @@ import java.awt.Color;
 
 import javax.imageio.ImageIO;
 
-import weka.classifiers.Classifier;
-import weka.classifiers.bayes.NaiveBayes;
-import weka.core.Instance;
-import weka.core.Instances;
- 
-
 /**
  * Data collection for the test image is mostly located in the constructor.
- * Improvement of the machine is done by adding correctly classified images in the appropiate folder.
- *
+ * Improvement of the machine is done by adding correctly classified images in
+ * the appropriate folder.
+ * 
  */
 public class ClassifierMachine {
-	
-	
-	//the test image goes through a similar process to the 5 fold evaluation
+
+	// the test image goes through a similar process to the 5 fold evaluation
 	private final int AERO = 90238;
 	private final int CHEMEX = 90239;
 	private final int FRENCHPRESS = 90240;
 	private final int OFFSET = 90238;
-	
+
 	private final String IMAGES_LOCATION = "images/TestIMG/";
-	
+
 	private ArrayList<BufferedImage> testimages;
 	private ColorCollector data;
 	private BufferedWriter output;
-	private Color[][][] testimageDifferences; //dimensions of [number of categories][size of the categories][normalized width of images]
-	//note, normalization is not used right now much
-	
-	public ClassifierMachine(BufferedImage testimage)
-	{
-		URL url = getClass().getResource(IMAGES_LOCATION);
+	private Color[][][] testimageDifferences; // dimensions of [number of
+												// categories][size of the
+												// categories][normalized width
+												// of images]
+
+	// note, normalization is not used right now much
+
+	public ClassifierMachine() {
+		URL url = ClassLoader.getSystemResource(IMAGES_LOCATION);
 		File folder = new File(url.getPath());
 		File[] imageFiles = folder.listFiles();
 		BufferedImage[] images = new BufferedImage[imageFiles.length];
+		testimages = new ArrayList<BufferedImage>();
 		for (int i = 0; i < imageFiles.length; i++) {
-			try {
-				images[i] = ImageIO.read(imageFiles[i]);
-			}
+			if (imageFiles[i].getName().contains("jpeg ")
+					|| imageFiles[i].getName().contains("jpg")
+					|| imageFiles[i].getName().contains("png")) {
+				try {
 
-			catch (IOException exception) {
-				System.out.println("Some file was moved.");
+					BufferedImage image= ImageIO.read(imageFiles[i]);
+					testimages.add(image);
+				}
+
+				catch (IOException exception) {
+					System.out.println("Some file was moved.");
+				}	
 			}
-			testimages.add(images[i]);
 		}
-		
-		
-		try
-		{
-			output = new BufferedWriter(new FileWriter( "output.txt"));
-		}
-		catch(Exception e)
-		{
+
+		try {
+			output = new BufferedWriter(new FileWriter("output.txt"));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		data = new ColorCollector();
 
-		for (int i = 0; i < testimages.size(); i++)
-		{
+		for (int i = 0; i < testimages.size(); i++) {
 			testimageDifferences = data.test(testimages.get(i));
-			
+
 			try {
-				output.write(imageFiles[i].getName() + "	" +  analyze( testimageDifferences, AERO) );
-				output.write(imageFiles[i].getName() + "	" +  analyze( testimageDifferences, CHEMEX) );
-				output.write(imageFiles[i].getName() + "	" +  analyze( testimageDifferences, FRENCHPRESS) );
+				output.write(imageFiles[i].getName() + "	"
+						+ analyze(testimageDifferences, AERO));
+				output.write(imageFiles[i].getName() + "	"
+						+ analyze(testimageDifferences, CHEMEX));
+				output.write(imageFiles[i].getName() + "	"
+						+ analyze(testimageDifferences, FRENCHPRESS));
 			} catch (IOException e) {
-				e.printStackTrace(); //this try/catch is here in case output was not able to be opened
+				e.printStackTrace(); // this try/catch is here in case output
+										// was not able to be opened
 			}
-			
+
 		}
-		
-		//should not need to need to write anymore if we are done analyzing
+
+		// should not need to need to write anymore if we are done analyzing
 		try {
 			output.close();
 		} catch (IOException e) {
-			
+
 			e.printStackTrace();
 		}
-		
+
 	}
-	
-	private boolean analyze(Color[][][] bigArrayOfDifferences, int whichArray) throws IOException //throws exception from output
+
+	private boolean analyze(Color[][][] bigArrayOfDifferences, int whichArray)
+			throws IOException // throws exception from output
 	{
-		boolean match = false; //burden of proof on us
-		Color[][] testdifferences = bigArrayOfDifferences[whichArray-OFFSET]; //this is made to not be out of bounds by the constants
+		boolean match = false; // burden of proof on us
+		Color[][] test = bigArrayOfDifferences[whichArray - OFFSET]; // this is
+																		// made
+																		// to
+																		// not
+																		// be
+																		// out
+																		// of
+																		// bounds
+																		// by
+																		// the
+																		// constants
 		Color[][] standard;
-		
 		/*
-		 * BIG NOTE: MUST FIND A WAY TO GENERALIZE THIS. 
+		 * BIG NOTE: MUST FIND A WAY TO GENERALIZE THIS.
 		 */
-		switch (whichArray) 
-		{
-		
-			case AERO:
-				standard = data.getAero();
-				break;
-			case CHEMEX:
-				standard = data.getChemex();
-			case FRENCHPRESS:
-				standard = data.getFrenchPress();
-			default:
-				output.write("Using Aero as default because of invalid input");
-				standard = data.getAero();
-				break;
+		switch (whichArray) {
+
+		case AERO:
+			standard = data.getAero();
+			break;
+		case CHEMEX:
+			standard = data.getChemex();
+		case FRENCHPRESS:
+			standard = data.getFrenchPress();
+		default:
+			output.write("Using Aero as default because of invalid input");
+			standard = data.getAero();
+			break;
 		}
-		//implement 90% confidence interval code
+		int countOfPositives[] = new int[standard.length];
+
+		int testred;
+		int testblue;
+		int testgreen;
+		int standardred;
+		int standardblue;
+		int standardgreen;
+		// there are 5 folds now for each category, more as more images get
+		// added
+		for (int fold = 0; fold < test.length; fold++) {
+			for (int i = 0; i < test[fold].length; i++) {
+				testred = test[fold][i].getRed();
+				testblue = test[fold][i].getBlue();
+				testgreen = test[fold][i].getBlue();
+				standardred = standard[fold][i].getRed();
+				standardblue = standard[fold][i].getBlue();
+				standardgreen = standard[fold][i].getGreen();
+
+				if (Math.abs(testred) < Math.abs(standardred)
+						&& Math.abs(testblue) < Math.abs(standardblue)
+						&& Math.abs(testgreen) < Math.abs(standardgreen)) {
+					countOfPositives[fold]++;
+
+				}
+			}
+		}
+		boolean[] foldagreement = new boolean[test.length];
+		// 60% of folds must agree, for now
+		// 90% of length must agree for a fold to agree
+		for (int fold = 0; fold < test.length; fold++) {
+			if ((double) countOfPositives[fold] / (double) test[fold].length >= 0.9)
+				foldagreement[fold] = true;
+			else
+				foldagreement[fold] = false;
+		}
+		int goodfolds = 0;
+		for (int i = 0; i < foldagreement.length; i++) {
+			if (foldagreement[i])
+				goodfolds++;
+		}
+		if ((double) goodfolds / (double) test.length >= 0.6)
+			match = true;
 		return match;
 	}
-	
-	/* might be useful later but I decided on another way to analyze equality
-	public double distance (Color[][] test, Color[][] category) throws Exception
-	{
-		//problem of error hiding if there  are errors in the dimensions of width after this check
-		//it is patched up a little right after
-		if (test.length != category.length)
-		{
-			//incorrect number of folds as the data is matched across the data from the 5
-			//fold evaluation procedure detailed in ColorCollector
-			throw new Exception("Incorrect number of folds");
-		}
-		
-		boolean correctWidth; //check that each fold has right number of regions
-		
-		for (int i =0; i < test.length; i ++)
-		{
-			correctWidth = test[i].length == category[i].length;
-			if (!correctWidth)
-			{
-				throw new Exception("Fold #" + i + " has incorrect number of folds.");
-			}
-				
-		}
-		setTestImageDifferences( data.calculateDistance(testimage));
-		double distance = 0;
-		int numberOfFolds = test.length;
-		double[] instancesRed = new double[numberOfFolds];
-		double[] instancesGreen = new double[numberOfFolds];
-		double[] instancesBlue =  new double[numberOfFolds];
-		
-		
-		//precaution that will most likely never be used
-		distance = distance > 0 ? distance : -1 * distance;
-		return distance;
-	}*/
-	
+
+	/*
+	 * might be useful later but I decided on another way to analyze equality
+	 * public double distance (Color[][] test, Color[][] category) throws
+	 * Exception { //problem of error hiding if there are errors in the
+	 * dimensions of width after this check //it is patched up a little right
+	 * after if (test.length != category.length) { //incorrect number of folds
+	 * as the data is matched across the data from the 5 //fold evaluation
+	 * procedure detailed in ColorCollector throw new
+	 * Exception("Incorrect number of folds"); }
+	 * 
+	 * boolean correctWidth; //check that each fold has right number of regions
+	 * 
+	 * for (int i =0; i < test.length; i ++) { correctWidth = test[i].length ==
+	 * category[i].length; if (!correctWidth) { throw new Exception("Fold #" + i
+	 * + " has incorrect number of folds."); }
+	 * 
+	 * } setTestImageDifferences( data.calculateDistance(testimage)); double
+	 * distance = 0; int numberOfFolds = test.length; double[] instancesRed =
+	 * new double[numberOfFolds]; double[] instancesGreen = new
+	 * double[numberOfFolds]; double[] instancesBlue = new
+	 * double[numberOfFolds];
+	 * 
+	 * 
+	 * //precaution that will most likely never be used distance = distance > 0
+	 * ? distance : -1 * distance; return distance; }
+	 */
 
 }

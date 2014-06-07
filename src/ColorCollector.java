@@ -28,14 +28,10 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-/**
- *
- */
 public class ColorCollector {
 
 	private final int NUMCLASSES = 3;
-	public final int BASE_WIDTH = 2448;
-	private final int BASE_HEIGHT = 3264;
+	public final int BASE_WIDTH = 300;
 
 	private final int AERO = 90238;
 	private final int CHEMEX = 90239;
@@ -132,14 +128,19 @@ public class ColorCollector {
 		File[] imageFiles = folder.listFiles();
 		BufferedImage[] images = new BufferedImage[imageFiles.length];
 		for (int i = 0; i < imageFiles.length; i++) {
-			try {
-				images[i] = ImageIO.read(imageFiles[i]);
-			}
+			if (imageFiles[i].getName().contains("jpeg ")
+					|| imageFiles[i].getName().contains("jpg")
+					|| imageFiles[i].getName().contains("png")) {
+				try {
 
-			catch (IOException exception) {
-				System.out.println("Some file was moved.");
+					images[i] = ImageIO.read(imageFiles[i]);
+				}
+
+				catch (IOException exception) {
+					System.out.println("Some file was moved.");
+				}
+				imageStackAero.add(rescale(images[i]));
 			}
-			imageStackAero.add(images[i]);
 		}
 		return;
 	}
@@ -153,14 +154,19 @@ public class ColorCollector {
 		File[] imageFiles = folder.listFiles();
 		BufferedImage[] images = new BufferedImage[imageFiles.length];
 		for (int i = 0; i < imageFiles.length; i++) {
-			try {
-				images[i] = ImageIO.read(imageFiles[i]);
-			}
+			if (imageFiles[i].getName().contains("jpeg ")
+					|| imageFiles[i].getName().contains("jpg")
+					|| imageFiles[i].getName().contains("png")) {
+				try {
 
-			catch (IOException exception) {
-				System.out.println("Some file was moved.");
+					images[i] = ImageIO.read(imageFiles[i]);
+				}
+
+				catch (IOException exception) {
+					System.out.println("Some file was moved.");
+				}
+				imageStackChemex.add(rescale(images[i]));
 			}
-			imageStackChemex.add(images[i]);
 		}
 		return;
 	}
@@ -174,14 +180,19 @@ public class ColorCollector {
 		File[] imageFiles = folder.listFiles();
 		BufferedImage[] images = new BufferedImage[imageFiles.length];
 		for (int i = 0; i < imageFiles.length; i++) {
-			try {
-				images[i] = ImageIO.read(imageFiles[i]);
-			}
+			if (imageFiles[i].getName().contains("jpeg ")
+					|| imageFiles[i].getName().contains("jpg")
+					|| imageFiles[i].getName().contains("png")) {
+				try {
 
-			catch (IOException exception) {
-				System.out.println("Some file was moved.");
+					images[i] = ImageIO.read(imageFiles[i]);
+				}
+
+				catch (IOException exception) {
+					System.out.println("Some file was moved.");
+				}
+				imageStackFrenchPress.add(rescale(images[i]));
 			}
-			imageStackFrenchPress.add(images[i]);
 		}
 	}
 
@@ -346,6 +357,7 @@ public class ColorCollector {
 	}
 
 	public Color[][][] test(BufferedImage testimage) {
+		testimage = rescale(testimage);
 		Color[][][] test;
 
 		test = new Color[NUMCLASSES][][];
@@ -359,50 +371,33 @@ public class ColorCollector {
 		for (int m = 0; m < imageStackAero.size(); m++) {
 
 			ArrayList<BufferedImage> aeros = new ArrayList<BufferedImage>();
-			ArrayList<BufferedImage> chemexes = new ArrayList<BufferedImage>();
-			ArrayList<BufferedImage> frenchpresses = new ArrayList<BufferedImage>();
-			
+
 			for (int i = 0; i < imageStackAero.size(); i++) {
 				if (i != m) {
 					aeros.add(imageStackAero.get(i));
 				}
 			}
-			
-			for (int i = 0; i < imageStackChemex.size(); i++) {
-				if (i != m) {
-					chemexes.add(imageStackChemex.get(i));
-				}
-			}
-			
-			for (int i = 0; i < imageStackFrenchPress.size(); i++) {
-				if (i != m) {
-					frenchpresses.add(imageStackFrenchPress.get(i));
-				}
-			}
 
-			
 			int[] imageHeightRatioAero = new int[aeros.size()];
-			int[] imageHeightRatioChemex = new int[chemexes.size()];
-			int[] imageHeightRatioFrench = new int[frenchpresses.size()];
-			
-			Color[][][] colorDifferences = new Color[vectors.size()][BASE_WIDTH][testimage
+
+			Color[][][] colorDifferences = new Color[aeros.size()][BASE_WIDTH][testimage
 					.getHeight()];
 
-			for (int i = 0; i < vectors.size(); i++) {
-				imageHeightRatio[i] = (int) ((double) testimage.getHeight() / (double) vectors
+			for (int i = 0; i < aeros.size(); i++) {
+				imageHeightRatioAero[i] = (int) ((double) testimage.getHeight() / (double) aeros
 						.get(i).getHeight());
 			}
 
-			for (int k = 0; k < vectors.size(); k++) {
+			for (int k = 0; k < aeros.size(); k++) {
 				// processing across images
 				for (int i = 0; i < testimage.getWidth(); i++) {
 					int averageRed;
 					int averageBlue;
 					int averageGreen;
 					for (int j = 0; j < testimage.getHeight(); j++) {
-						int[] distance = vectors.get(k).getRGB(i,
-								j * imageHeightRatio[j], 1,
-								imageHeightRatio[j], null, 0, 1);
+						int[] distance = aeros.get(k).getRGB(i,
+								j * imageHeightRatioAero[j], 1,
+								imageHeightRatioAero[j], null, 0, 1);
 						averageRed = 0;
 						averageBlue = 0;
 						averageGreen = 0;
@@ -431,9 +426,9 @@ public class ColorCollector {
 			// [m-1][BASE_WIDTH][testimage.height] dimensions. average per row
 			// now
 
-			Color[][] differenceColumn = new Color[vectors.size()][BASE_WIDTH];
+			Color[][] differenceColumn = new Color[aeros.size()][BASE_WIDTH];
 
-			for (int k = 0; k < vectors.size(); k++) {
+			for (int k = 0; k < aeros.size(); k++) {
 
 				for (int w = 0; w < testimage.getWidth(); w++) {
 					int averageRed = 0;
@@ -457,25 +452,222 @@ public class ColorCollector {
 				int averageRed = 0;
 				int averageGreen = 0;
 				int averageBlue = 0;
-				for (int k = 0; w < vectors.size(); k++) {
+				for (int k = 0; w < aeros.size(); k++) {
 					averageRed += differenceColumn[k][w].getRed();
 					averageGreen += differenceColumn[k][w].getGreen();
 					averageBlue += differenceColumn[k][w].getBlue();
 				}
-				averagek[w] = new Color(averageRed / vectors.size(),
-						averageGreen / vectors.size(), averageBlue
-								/ vectors.size());
+				averagek[w] = new Color(averageRed / aeros.size(), averageGreen
+						/ aeros.size(), averageBlue / aeros.size());
 			}
 
 			for (int i = 0; i < testimage.getWidth(); i++) {
-				unfoldedDifferenceArray[m][i] = averagek[i];
+				test[AERO - OFFSET][m][i] = averagek[i];
 			}
 
 			// end of m loop (the m loop goes through one of the 5 cross fold
 			// evaluations
 		}
 
+		for (int m = 0; m < imageStackChemex.size(); m++) {
+
+			ArrayList<BufferedImage> chemexes = new ArrayList<BufferedImage>();
+
+			for (int i = 0; i < imageStackChemex.size(); i++) {
+				if (i != m) {
+					chemexes.add(imageStackChemex.get(i));
+				}
+			}
+
+			int[] imageHeightRatioAero = new int[chemexes.size()];
+
+			Color[][][] colorDifferences = new Color[chemexes.size()][BASE_WIDTH][testimage
+					.getHeight()];
+
+			for (int i = 0; i < chemexes.size(); i++) {
+				imageHeightRatioAero[i] = (int) ((double) testimage.getHeight() / (double) chemexes
+						.get(i).getHeight());
+			}
+
+			for (int k = 0; k < chemexes.size(); k++) {
+				// processing across images
+				for (int i = 0; i < testimage.getWidth(); i++) {
+					int averageRed;
+					int averageBlue;
+					int averageGreen;
+					for (int j = 0; j < testimage.getHeight(); j++) {
+						int[] distance = chemexes.get(k).getRGB(i,
+								j * imageHeightRatioAero[j], 1,
+								imageHeightRatioAero[j], null, 0, 1);
+						averageRed = 0;
+						averageBlue = 0;
+						averageGreen = 0;
+						for (int h = 0; h < distance.length; h++) {
+							averageRed += new Color(distance[i]).getRed();
+							averageBlue += new Color(distance[i]).getBlue();
+							averageGreen += new Color(distance[i]).getGreen();
+						}
+						averageRed /= distance.length;
+						averageBlue /= distance.length;
+						averageGreen /= distance.length;
+						Color averageColor = new Color(averageRed,
+								averageGreen, averageBlue);
+						Color currentpixel = new Color(testimage.getRGB(i, j));
+						colorDifferences[k][i][j] = new Color(
+								currentpixel.getRed() - averageColor.getRed(),
+								currentpixel.getGreen()
+										- averageColor.getGreen(),
+								currentpixel.getBlue() - averageColor.getBlue());
+
+					}
+				}
+
+			}
+			// Now the colorDifferences array has
+			// [m-1][BASE_WIDTH][testimage.height] dimensions. average per row
+			// now
+
+			Color[][] differenceColumn = new Color[chemexes.size()][BASE_WIDTH];
+
+			for (int k = 0; k < chemexes.size(); k++) {
+
+				for (int w = 0; w < testimage.getWidth(); w++) {
+					int averageRed = 0;
+					int averageGreen = 0;
+					int averageBlue = 0;
+					for (int i = 0; i < testimage.getHeight(); i++) {
+						averageRed += colorDifferences[k][w][i].getRed();
+						averageGreen += colorDifferences[k][w][i].getGreen();
+						averageBlue += colorDifferences[k][w][i].getBlue();
+					}
+					averageRed = (int) averageRed / testimage.getHeight();
+					averageBlue = (int) averageBlue / testimage.getHeight();
+					averageGreen = (int) averageGreen / testimage.getHeight();
+					differenceColumn[k][w] = new Color(averageRed,
+							averageGreen, averageBlue);
+				}
+			} // the column differences are now collected
+			Color[] averagek = new Color[testimage.getWidth()];
+
+			for (int w = 0; w < testimage.getWidth(); w++) {
+				int averageRed = 0;
+				int averageGreen = 0;
+				int averageBlue = 0;
+				for (int k = 0; w < chemexes.size(); k++) {
+					averageRed += differenceColumn[k][w].getRed();
+					averageGreen += differenceColumn[k][w].getGreen();
+					averageBlue += differenceColumn[k][w].getBlue();
+				}
+				averagek[w] = new Color(averageRed / chemexes.size(),
+						averageGreen / chemexes.size(), averageBlue
+								/ chemexes.size());
+			}
+
+			for (int i = 0; i < testimage.getWidth(); i++) {
+				test[CHEMEX - OFFSET][m][i] = averagek[i];
+			}
+
+		}
+
+		for (int m = 0; m < imageStackFrenchPress.size(); m++) {
+
+			ArrayList<BufferedImage> frenchpresses = new ArrayList<BufferedImage>();
+
+			for (int i = 0; i < imageStackFrenchPress.size(); i++) {
+				if (i != m) {
+					frenchpresses.add(imageStackFrenchPress.get(i));
+				}
+			}
+
+			int[] imageHeightRatioFrenchPress = new int[frenchpresses.size()];
+
+			Color[][][] colorDifferences = new Color[frenchpresses.size()][BASE_WIDTH][testimage
+					.getHeight()];
+
+			for (int i = 0; i < frenchpresses.size(); i++) {
+				imageHeightRatioFrenchPress[i] = (int) ((double) testimage
+						.getHeight() / (double) frenchpresses.get(i)
+						.getHeight());
+			}
+
+			for (int k = 0; k < frenchpresses.size(); k++) {
+				// processing across images
+				for (int i = 0; i < testimage.getWidth(); i++) {
+					int averageRed;
+					int averageBlue;
+					int averageGreen;
+					for (int j = 0; j < testimage.getHeight(); j++) {
+						int[] distance = frenchpresses.get(k).getRGB(i,
+								j * imageHeightRatioFrenchPress[j], 1,
+								imageHeightRatioFrenchPress[j], null, 0, 1);
+						averageRed = 0;
+						averageBlue = 0;
+						averageGreen = 0;
+						for (int h = 0; h < distance.length; h++) {
+							averageRed += new Color(distance[i]).getRed();
+							averageBlue += new Color(distance[i]).getBlue();
+							averageGreen += new Color(distance[i]).getGreen();
+						}
+						averageRed /= distance.length;
+						averageBlue /= distance.length;
+						averageGreen /= distance.length;
+						Color averageColor = new Color(averageRed,
+								averageGreen, averageBlue);
+						Color currentpixel = new Color(testimage.getRGB(i, j));
+						colorDifferences[k][i][j] = new Color(
+								currentpixel.getRed() - averageColor.getRed(),
+								currentpixel.getGreen()
+										- averageColor.getGreen(),
+								currentpixel.getBlue() - averageColor.getBlue());
+
+					}
+				}
+
+			}
+			// Now the colorDifferences array has
+			// [m-1][BASE_WIDTH][testimage.height] dimensions. average per row
+			// now
+
+			Color[][] differenceColumn = new Color[frenchpresses.size()][BASE_WIDTH];
+
+			for (int k = 0; k < frenchpresses.size(); k++) {
+
+				for (int w = 0; w < testimage.getWidth(); w++) {
+					int averageRed = 0;
+					int averageGreen = 0;
+					int averageBlue = 0;
+					for (int i = 0; i < testimage.getHeight(); i++) {
+						averageRed += colorDifferences[k][w][i].getRed();
+						averageGreen += colorDifferences[k][w][i].getGreen();
+						averageBlue += colorDifferences[k][w][i].getBlue();
+					}
+					averageRed = (int) averageRed / testimage.getHeight();
+					averageBlue = (int) averageBlue / testimage.getHeight();
+					averageGreen = (int) averageGreen / testimage.getHeight();
+					differenceColumn[k][w] = new Color(averageRed,
+							averageGreen, averageBlue);
+				}
+			} // the column differences are now collected
+			Color[] averagek = new Color[testimage.getWidth()];
+
+			for (int w = 0; w < testimage.getWidth(); w++) {
+				int averageRed = 0;
+				int averageGreen = 0;
+				int averageBlue = 0;
+				for (int k = 0; w < frenchpresses.size(); k++) {
+					averageRed += differenceColumn[k][w].getRed();
+					averageGreen += differenceColumn[k][w].getGreen();
+					averageBlue += differenceColumn[k][w].getBlue();
+				}
+				averagek[w] = new Color(averageRed / frenchpresses.size(),
+						averageGreen / frenchpresses.size(), averageBlue
+								/ frenchpresses.size());
+			}
+
+			for (int i = 0; i < testimage.getWidth(); i++) {
+				test[FRENCHPRESS - OFFSET][m][i] = averagek[i];
+			}
+		}
 		return test;
 	}
-
 }
