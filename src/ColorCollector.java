@@ -20,6 +20,9 @@
  *
  */
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +63,36 @@ public class ColorCollector {
 	 */
 	public ColorCollector() {
 
+		imageStackAero = new ArrayList<BufferedImage>();
+		imageStackChemex = new ArrayList<BufferedImage>();
+		imageStackFrenchPress = new ArrayList<BufferedImage>();
+		
+		
+		loadStackAero();
+		// differenceAero = new
+		// Color[imageStackAero.size()][BASE_WIDTH][BASE_HEIGHT];
+		differenceAero = new Color[imageStackAero.size()][BASE_WIDTH];
+		try {
+			difference(imageStackAero, AERO);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		loadStackChemex();
+		// differenceChemex = new
+		// Color[imageStackChemex.size()][BASE_WIDTH][BASE_HEIGHT];
+		differenceChemex = new Color[imageStackChemex.size()][BASE_WIDTH];
+		try {
+			difference(imageStackChemex, CHEMEX);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		loadStackFrenchPress();
+		// differenceFrenchPress = new
+		// Color[imageStackFrenchPress.size()][BASE_WIDTH][BASE_HEIGHT];
+		differenceFrenchPress = new Color[imageStackFrenchPress.size()][BASE_WIDTH];
+		/*
 		new Thread() {
 			public void run() {
 				loadStackAero();
@@ -87,7 +120,13 @@ public class ColorCollector {
 				}
 			}
 		}.start();
-
+		
+		
+		try {
+			difference(imageStackFrenchPress, FRENCHPRESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		new Thread() {
 			public void run() {
 				loadStackFrenchPress();
@@ -100,7 +139,7 @@ public class ColorCollector {
 					e.printStackTrace();
 				}
 			}
-		}.start();
+		}.start();*/
 
 	}
 
@@ -114,8 +153,8 @@ public class ColorCollector {
 	public BufferedImage rescale(BufferedImage input) {
 		int width = input.getWidth();
 		int height = input.getHeight();
-		input = (BufferedImage) input.getScaledInstance(BASE_WIDTH, height
-				* width / BASE_WIDTH, java.awt.Image.SCALE_DEFAULT);
+		input = getBufferedImage(input.getScaledInstance(BASE_WIDTH, height
+				* width / BASE_WIDTH, java.awt.Image.SCALE_DEFAULT));
 		return input;
 	}
 
@@ -132,7 +171,6 @@ public class ColorCollector {
 					|| imageFiles[i].getName().contains("jpg")
 					|| imageFiles[i].getName().contains("png")) {
 				try {
-
 					images[i] = ImageIO.read(imageFiles[i]);
 				}
 
@@ -140,6 +178,7 @@ public class ColorCollector {
 					System.out.println("Some file was moved.");
 				}
 				imageStackAero.add(rescale(images[i]));
+				images[i] = null;
 			}
 		}
 		return;
@@ -166,6 +205,7 @@ public class ColorCollector {
 					System.out.println("Some file was moved.");
 				}
 				imageStackChemex.add(rescale(images[i]));
+				images[i] = null;
 			}
 		}
 		return;
@@ -192,6 +232,7 @@ public class ColorCollector {
 					System.out.println("Some file was moved.");
 				}
 				imageStackFrenchPress.add(rescale(images[i]));
+				images[i] = null;
 			}
 		}
 	}
@@ -669,5 +710,21 @@ public class ColorCollector {
 			}
 		}
 		return test;
+	}
+	//code found on http://blog.pengoworks.com/index.cfm/2008/2/8/The-nightmares-of-getting-images-from-the-Mac-OS-X-clipboard-using-Java
+	//coverts apple.awt.OSXImage into a BufferedImgage
+	public static BufferedImage getBufferedImage(Image img){ 
+	    if( img == null ) return null; 
+	    int w = img.getWidth(null); 
+	    int h = img.getHeight(null); 
+	    // draw original image to thumbnail image object and 
+	    // scale it to the new size on-the-fly 
+	    BufferedImage bufimg = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB); 
+	    Graphics2D g2 = bufimg.createGraphics(); 
+	    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR); 
+	    g2.drawImage(img, 0, 0, w, h, null); 
+	    g2.dispose(); 
+	    g2=null;
+	    return bufimg; 
 	}
 }

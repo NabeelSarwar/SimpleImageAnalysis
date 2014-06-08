@@ -26,6 +26,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
 
 import javax.imageio.ImageIO;
 
@@ -68,6 +71,7 @@ public class ClassifierMachine {
 
 					BufferedImage image= ImageIO.read(imageFiles[i]);
 					testimages.add(image);
+					image = null;
 				}
 
 				catch (IOException exception) {
@@ -89,11 +93,11 @@ public class ClassifierMachine {
 
 			try {
 				output.write(imageFiles[i].getName() + " match for Aero	"
-						+ analyze(testimageDifferences, AERO));
+						+ analyze(testimageDifferences, AERO-OFFSET));
 				output.write(imageFiles[i].getName() + " match for Chemex	"
-						+ analyze(testimageDifferences, CHEMEX));
+						+ analyze(testimageDifferences, CHEMEX-OFFSET));
 				output.write(imageFiles[i].getName() + " match for Frenchpress	"
-						+ analyze(testimageDifferences, FRENCHPRESS));
+						+ analyze(testimageDifferences, FRENCHPRESS-OFFSET));
 			} catch (IOException e) {
 				e.printStackTrace(); // this try/catch is here in case output
 										// was not able to be opened
@@ -115,17 +119,7 @@ public class ClassifierMachine {
 			throws IOException // throws exception from output
 	{
 		boolean match = false; // burden of proof on us
-		Color[][] test = bigArrayOfDifferences[whichArray - OFFSET]; // this is
-																		// made
-																		// to
-																		// not
-																		// be
-																		// out
-																		// of
-																		// bounds
-																		// by
-																		// the
-																		// constants
+		Color[][] test = bigArrayOfDifferences[whichArray]; 
 		Color[][] standard;
 		/*
 		 * BIG NOTE: MUST FIND A WAY TO GENERALIZE THIS.
@@ -190,31 +184,5 @@ public class ClassifierMachine {
 		return match;
 	}
 
-	/*
-	 * might be useful later but I decided on another way to analyze equality
-	 * public double distance (Color[][] test, Color[][] category) throws
-	 * Exception { //problem of error hiding if there are errors in the
-	 * dimensions of width after this check //it is patched up a little right
-	 * after if (test.length != category.length) { //incorrect number of folds
-	 * as the data is matched across the data from the 5 //fold evaluation
-	 * procedure detailed in ColorCollector throw new
-	 * Exception("Incorrect number of folds"); }
-	 * 
-	 * boolean correctWidth; //check that each fold has right number of regions
-	 * 
-	 * for (int i =0; i < test.length; i ++) { correctWidth = test[i].length ==
-	 * category[i].length; if (!correctWidth) { throw new Exception("Fold #" + i
-	 * + " has incorrect number of folds."); }
-	 * 
-	 * } setTestImageDifferences( data.calculateDistance(testimage)); double
-	 * distance = 0; int numberOfFolds = test.length; double[] instancesRed =
-	 * new double[numberOfFolds]; double[] instancesGreen = new
-	 * double[numberOfFolds]; double[] instancesBlue = new
-	 * double[numberOfFolds];
-	 * 
-	 * 
-	 * //precaution that will most likely never be used distance = distance > 0
-	 * ? distance : -1 * distance; return distance; }
-	 */
 
 }
