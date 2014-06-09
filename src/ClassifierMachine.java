@@ -116,7 +116,6 @@ public class ClassifierMachine {
 	}
 
 	private boolean analyze(double[][][] bigArrayOfDifferences, int whichArray)
-			throws IOException // throws exception from output
 	{
 		boolean match = false; // burden of proof on us
 		double[][][] test = bigArrayOfDifferences;
@@ -136,9 +135,7 @@ public class ClassifierMachine {
 			standard = data.getFrenchPress();
 			break;
 		default:
-			output.write("Using Aero as default because of invalid input\n");
-			standard = data.getAero();
-			break;
+			standard = null;
 		}
 		
 		int countOfPositives[] = new int[standard.length];
