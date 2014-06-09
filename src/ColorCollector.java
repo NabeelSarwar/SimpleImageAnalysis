@@ -33,7 +33,6 @@ import javax.imageio.ImageIO;
 
 public class ColorCollector {
 
-	private final int NUMCLASSES = 3;
 	public final int BASE_WIDTH = 300;
 
 	// locations for the images as long as the class file is inside same folder
@@ -105,7 +104,7 @@ public class ColorCollector {
 		int width = input.getWidth();
 		int height = input.getHeight();
 		input = getBufferedImage(input.getScaledInstance(BASE_WIDTH, height
-				* width / BASE_WIDTH, java.awt.Image.SCALE_DEFAULT));
+				* BASE_WIDTH / width, java.awt.Image.SCALE_DEFAULT));
 		return input;
 	}
 
@@ -116,7 +115,6 @@ public class ColorCollector {
 		URL url = getClass().getResource(AEROPRESS_LOCATION);
 		File folder = new File(url.getPath());
 		File[] imageFiles = folder.listFiles();
-		BufferedImage[] images = new BufferedImage[imageFiles.length];
 		for (int i = 0; i < imageFiles.length; i++) {
 			if (imageFiles[i].getName().contains("jpeg ")
 					|| imageFiles[i].getName().contains("jpg")
@@ -134,7 +132,6 @@ public class ColorCollector {
 		URL url = getClass().getResource(CHEMEX_LOCATION);
 		File folder = new File(url.getPath());
 		File[] imageFiles = folder.listFiles();
-		BufferedImage[] images = new BufferedImage[imageFiles.length];
 		for (int i = 0; i < imageFiles.length; i++) {
 			if (imageFiles[i].getName().contains("jpeg ")
 					|| imageFiles[i].getName().contains("jpg")
@@ -153,7 +150,6 @@ public class ColorCollector {
 		URL url = getClass().getResource(FRENCHPRESS_LOCATION);
 		File folder = new File(url.getPath());
 		File[] imageFiles = folder.listFiles();
-		BufferedImage[] images = new BufferedImage[imageFiles.length];
 		for (int i = 0; i < imageFiles.length; i++) {
 			if (imageFiles[i].getName().contains("jpeg ")
 					|| imageFiles[i].getName().contains("jpg")
@@ -179,7 +175,6 @@ public class ColorCollector {
 	private void difference(ArrayList<File> imagefiles, int whichArray) throws Exception {
 		double[][][] foldArray = new double[imagefiles.size()][3][BASE_WIDTH]; // 3
 																				// colors
-		double[][] differences = new double[3][BASE_WIDTH];
 		ArrayList<File> otherimages = new ArrayList<File>();
 		// for each of the images
 		for (int i = 0; i < imagefiles.size(); i++) {
@@ -306,6 +301,7 @@ public class ColorCollector {
 		}
 		return differences;
 	}
+	
 	public double average(double[] array)
 	{
 		int length = array.length;
@@ -315,14 +311,19 @@ public class ColorCollector {
 		return total/length;
 	}
 	
+	/*
+	 * returns the average of the image differences
+	 * for the folds
+	 */
 	private double[][] average(double[][][] preaverage)
 	{
 		double[][] averages = new double[3][BASE_WIDTH];
 		double total = 0;
-		for(int i = 0; i < 3; i++) //since we have 3 colors
+		for(int i = 0; i < 4; i++) //since we have 3 colors
 		{
 			for (int j = 0; j<BASE_WIDTH; i++)
 			{
+				total = 0;
 				for(int k = 0; k < preaverage.length; k++)
 				{
 					total+= preaverage[k][i][j];
