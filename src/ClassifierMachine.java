@@ -90,11 +90,14 @@ public class ClassifierMachine {
 				frenchpresstest =data.test( data.rescale(getBufferedImage (ImageIO.read(imagefiles.get(i)))), FRENCHPRESS-OFFSET);
 				output.write(imagefiles.get(i).getName() + " match for Aero	"
 						+ analyze(aerotest, AERO));
+				output.newLine();
 				output.write(imagefiles.get(i).getName() + " match for Chemex	"
 						+ analyze(chemextest, CHEMEX));
+				output.newLine();
 				output.write(imagefiles.get(i).getName()
 						+ " match for Frenchpress	"
 						+ analyze(frenchpresstest, FRENCHPRESS));
+				output.newLine();
 			} catch (IOException e) {
 				e.printStackTrace(); // this try/catch is here in case output
 										// was not able to be opened
@@ -168,7 +171,7 @@ public class ClassifierMachine {
 		// 60% of folds must agree, for now
 		// 90% of length must agree for a fold to agree
 		for (int fold = 0; fold < test.length; fold++) {
-			if ((double) countOfPositives[fold] / (double) test[fold].length >= 0.9)
+			if ((double) countOfPositives[fold] / (double) test[fold].length >= 0.8)
 				foldagreement[fold] = true;
 			else
 				foldagreement[fold] = false;
@@ -178,7 +181,7 @@ public class ClassifierMachine {
 			if (foldagreement[i])
 				goodfolds++;
 		}
-		if ((double) goodfolds / (double) test.length >= 0.2)
+		if ((double) goodfolds / (double) test.length >= 0.4)
 			match = true;
 		return match;
 	}
