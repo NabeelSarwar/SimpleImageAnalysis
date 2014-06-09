@@ -128,8 +128,10 @@ public class ClassifierMachine {
 			break;
 		case CHEMEX:
 			standard = data.getChemex();
+			break;
 		case FRENCHPRESS:
 			standard = data.getFrenchPress();
+			break;
 		default:
 			output.write("Using Aero as default because of invalid input\n");
 			standard = data.getAero();

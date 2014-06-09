@@ -193,7 +193,7 @@ public class ColorCollector {
 				}
 			}
 			//array of (number of images-1)x3x BASE_WIDTH dimensions
-			double[][][] preaverages = new double[imagefiles.size() - 1][3][BASE_WIDTH];
+			double[][][] preaverages = new double[otherimages.size()][3][BASE_WIDTH];
 
 			for (int j = 0; j < otherimages.size(); j++) {
 				try {
@@ -240,12 +240,15 @@ public class ColorCollector {
 
 	private double[][] compareImages(BufferedImage test, BufferedImage template) {
 		double[][] differences = new double[3][BASE_WIDTH]; // three colors
-		int imageHeightRatio = (int) ((double) test.getHeight() / (double) template
-				.getHeight());
+		int imageHeightRatio;
 
 		if (test.getHeight() <= template.getHeight()) {
 			double[][] heightdata = new double[3][test.getHeight()];
 			for (int i = 0; i < test.getWidth(); i++) {
+				imageHeightRatio = (int) ((double) template.getHeight() / (double) test
+						.getHeight());
+				if (imageHeightRatio < 1)
+					imageHeightRatio = 1;
 				int averageRed;
 				int averageBlue;
 				int averageGreen;
@@ -273,6 +276,10 @@ public class ColorCollector {
 						- OFFSET]);
 			}
 		} else {
+			imageHeightRatio = (int) ((double) test.getHeight() / (double) template
+					.getHeight());
+			if(imageHeightRatio <1)
+				imageHeightRatio = 1;
 			double[][] heightdata = new double[3][test.getHeight()];
 			for (int i = 0; i < template.getWidth(); i++) {
 				int averageRed;
