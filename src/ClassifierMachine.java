@@ -44,40 +44,34 @@ public class ClassifierMachine {
 	private final int AERO = 90238;
 	private final int CHEMEX = 90239;
 	private final int FRENCHPRESS = 90240;
+	
+	private final int RED = 0;
+	private final int GREEN = 1;
+	private final int BLUE = 2;
 	private final int OFFSET = 90238;
 
 	private final String IMAGES_LOCATION = "images/TestIMG/";
-
-	private ArrayList<BufferedImage> testimages;
+	private ArrayList<File> imagefiles;
 	private ColorCollector data;
 	private BufferedWriter output;
-	private Color[][][] testimageDifferences; // dimensions of [number of
-												// categories][size of the
-												// categories][normalized width
-												// of images]
+
+	double[][][] aerotest;
+	double[][][] chemextest;
+	double[][][] frenchpresstest;
 
 	// note, normalization is not used right now much
 
 	public ClassifierMachine() {
 		URL url = ClassLoader.getSystemResource(IMAGES_LOCATION);
+		imagefiles = new ArrayList<File>();
 		File folder = new File(url.getPath());
-		File[] imageFiles = folder.listFiles();
-		testimages = new ArrayList<BufferedImage>();
-		for (int i = 0; i < imageFiles.length; i++) {
-			if (imageFiles[i].getName().contains("jpeg ")
-					|| imageFiles[i].getName().contains("jpg")
-					|| imageFiles[i].getName().contains("png")) {
-				try {
+		File[] files = folder.listFiles();
+		for (int i = 0; i < files.length; i++) {
+			if (files[i].getName().contains("jpeg ")
+					|| files[i].getName().contains("jpg")
+					|| files[i].getName().contains("png"))
 
-					BufferedImage image= ImageIO.read(imageFiles[i]);
-					testimages.add(image);
-					image = null;
-				}
-
-				catch (IOException exception) {
-					System.out.println("Some file was moved.");
-				}	
-			}
+				imagefiles.add(files[i]);
 		}
 
 		try {
@@ -88,16 +82,16 @@ public class ClassifierMachine {
 
 		data = new ColorCollector();
 
-		for (int i = 0; i < testimages.size(); i++) {
-			testimageDifferences = data.test(testimages.get(i));
+		for (int i = 0; i < imagefiles.size(); i++) {
 
 			try {
-				output.write(imageFiles[i].getName() + " match for Aero	"
-						+ analyze(testimageDifferences, AERO-OFFSET));
-				output.write(imageFiles[i].getName() + " match for Chemex	"
-						+ analyze(testimageDifferences, CHEMEX-OFFSET));
-				output.write(imageFiles[i].getName() + " match for Frenchpress	"
-						+ analyze(testimageDifferences, FRENCHPRESS-OFFSET));
+				output.write(imagefiles.get(i).getName() + " match for Aero	"
+						+ analyze(aerotest, AERO));
+				output.write(imagefiles.get(i).getName() + " match for Chemex	"
+						+ analyze(chemextest, CHEMEX));
+				output.write(imagefiles.get(i).getName()
+						+ " match for Frenchpress	"
+						+ analyze(frenchpresstest, FRENCHPRESS));
 			} catch (IOException e) {
 				e.printStackTrace(); // this try/catch is here in case output
 										// was not able to be opened
@@ -115,12 +109,12 @@ public class ClassifierMachine {
 
 	}
 
-	private boolean analyze(Color[][][] bigArrayOfDifferences, int whichArray)
+	private boolean analyze(double[][][] bigArrayOfDifferences, int whichArray)
 			throws IOException // throws exception from output
 	{
 		boolean match = false; // burden of proof on us
-		Color[][] test = bigArrayOfDifferences[whichArray]; 
-		Color[][] standard;
+		double[][][] test = bigArrayOfDifferences;
+		double[][][] standard;
 		/*
 		 * BIG NOTE: MUST FIND A WAY TO GENERALIZE THIS.
 		 */
@@ -138,24 +132,25 @@ public class ClassifierMachine {
 			standard = data.getAero();
 			break;
 		}
+		
 		int countOfPositives[] = new int[standard.length];
 
-		int testred;
-		int testblue;
-		int testgreen;
-		int standardred;
-		int standardblue;
-		int standardgreen;
+		double testred;
+		double testblue;
+		double testgreen;
+		double standardred;
+		double standardblue;
+		double standardgreen;
 		// there are 5 folds now for each category, more as more images get
 		// added
 		for (int fold = 0; fold < test.length; fold++) {
 			for (int i = 0; i < test[fold].length; i++) {
-				testred = test[fold][i].getRed();
-				testblue = test[fold][i].getBlue();
-				testgreen = test[fold][i].getBlue();
-				standardred = standard[fold][i].getRed();
-				standardblue = standard[fold][i].getBlue();
-				standardgreen = standard[fold][i].getGreen();
+				testred = test[fold][RED][i];
+				testblue = test[fold][BLUE][i];
+				testgreen = test[fold][GREEN][i];
+				standardred = standard[fold][RED][i];
+				standardblue = standard[fold][BLUE][i];
+				standardgreen = test[fold][GREEN][i];
 
 				if (Math.abs(testred) < Math.abs(standardred)
 						&& Math.abs(testblue) < Math.abs(standardblue)
@@ -184,5 +179,25 @@ public class ClassifierMachine {
 		return match;
 	}
 
+	// code found on
+	// http://blog.pengoworks.com/index.cfm/2008/2/8/The-nightmares-of-getting-images-from-the-Mac-OS-X-clipboard-using-Java
+	// coverts apple.awt.OSXImage into a BufferedImgage
+	public static BufferedImage getBufferedImage(Image img) {
+		if (img == null)
+			return null;
+		int w = img.getWidth(null);
+		int h = img.getHeight(null);
+		// draw original image to thumbnail image object and
+		// scale it to the new size on-the-fly
+		BufferedImage bufimg = new BufferedImage(w, h,
+				BufferedImage.TYPE_INT_RGB);
+		Graphics2D g2 = bufimg.createGraphics();
+		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g2.drawImage(img, 0, 0, w, h, null);
+		g2.dispose();
+		g2 = null;
+		return bufimg;
+	}
 
 }
