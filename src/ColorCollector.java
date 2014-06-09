@@ -73,14 +73,6 @@ public class ColorCollector {
 		loadStackAero();
 		try {
 			difference(aeroimages, AERO);
-			for(int i = 0;i < aerod.length; i++)
-			{
-				for(int j = 0; j <3; j++){
-					for (int k = 0; k < BASE_WIDTH; k++){
-						System.out.print(aerod[i][j][k]);
-					}
-				}
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

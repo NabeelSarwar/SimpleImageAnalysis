@@ -156,15 +156,14 @@ public class ClassifierMachine {
 				standardred = standard[fold][RED][i];
 				standardblue = standard[fold][BLUE][i];
 				standardgreen = test[fold][GREEN][i];
-
-				if (Math.abs(testred) < Math.abs(standardred)
-						&& Math.abs(testblue) < Math.abs(standardblue)
-						&& Math.abs(testgreen) < Math.abs(standardgreen)) {
-					countOfPositives[fold]++;
+				double redExpectation = Math.abs(testred-standardred) / standardred;
+				double blueExpectation = Math.abs(testblue-standardblue) / standardblue;
+				double greenExpectation = Math.abs(testgreen - standardgreen) /standardgreen;
+				if (redExpectation < 0.2 && blueExpectation < 0.2 && greenExpectation < 0.2)
+					countOfPositives[i]++;
 
 				}
 			}
-		}
 		boolean[] foldagreement = new boolean[test.length];
 		// 60% of folds must agree, for now
 		// 90% of length must agree for a fold to agree
@@ -179,7 +178,7 @@ public class ClassifierMachine {
 			if (foldagreement[i])
 				goodfolds++;
 		}
-		if ((double) goodfolds / (double) test.length >= 0.6)
+		if ((double) goodfolds / (double) test.length >= 0.2)
 			match = true;
 		return match;
 	}
