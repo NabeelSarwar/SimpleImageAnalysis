@@ -25,12 +25,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 
 import javax.imageio.ImageIO;
+
 
 /**
  * Data collection for the test image is mostly located in the constructor.
@@ -44,11 +44,11 @@ public class ClassifierMachine {
 	private final int AERO = 90238;
 	private final int CHEMEX = 90239;
 	private final int FRENCHPRESS = 90240;
+	private final int OFFSET = 90238;
 	
 	private final int RED = 0;
 	private final int GREEN = 1;
 	private final int BLUE = 2;
-	private final int OFFSET = 90238;
 
 	private final String IMAGES_LOCATION = "images/TestIMG/";
 	private ArrayList<File> imagefiles;
@@ -85,6 +85,9 @@ public class ClassifierMachine {
 		for (int i = 0; i < imagefiles.size(); i++) {
 
 			try {
+				aerotest = data.test( data.rescale(getBufferedImage (ImageIO.read(imagefiles.get(i)))), AERO-OFFSET);
+				chemextest = data.test( data.rescale(getBufferedImage (ImageIO.read(imagefiles.get(i)))), CHEMEX-OFFSET);
+				frenchpresstest =data.test( data.rescale(getBufferedImage (ImageIO.read(imagefiles.get(i)))), FRENCHPRESS-OFFSET);
 				output.write(imagefiles.get(i).getName() + " match for Aero	"
 						+ analyze(aerotest, AERO));
 				output.write(imagefiles.get(i).getName() + " match for Chemex	"
@@ -128,7 +131,7 @@ public class ClassifierMachine {
 		case FRENCHPRESS:
 			standard = data.getFrenchPress();
 		default:
-			output.write("Using Aero as default because of invalid input");
+			output.write("Using Aero as default because of invalid input\n");
 			standard = data.getAero();
 			break;
 		}

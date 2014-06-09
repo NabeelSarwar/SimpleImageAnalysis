@@ -73,6 +73,14 @@ public class ColorCollector {
 		loadStackAero();
 		try {
 			difference(aeroimages, AERO);
+			for(int i = 0;i < aerod.length; i++)
+			{
+				for(int j = 0; j <3; j++){
+					for (int k = 0; k < BASE_WIDTH; k++){
+						System.out.print(aerod[i][j][k]);
+					}
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -319,9 +327,9 @@ public class ColorCollector {
 	{
 		double[][] averages = new double[3][BASE_WIDTH];
 		double total = 0;
-		for(int i = 0; i < 4; i++) //since we have 3 colors
+		for(int i = 0; i < 3; i++) //since we have 3 colors
 		{
-			for (int j = 0; j<BASE_WIDTH; i++)
+			for (int j = 0; j<BASE_WIDTH; j++)
 			{
 				total = 0;
 				for(int k = 0; k < preaverage.length; k++)
