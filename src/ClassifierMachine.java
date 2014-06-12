@@ -126,12 +126,15 @@ public class ClassifierMachine {
 		switch (whichArray) {
 
 		case AERO:
+			System.out.println("Analyzing with aero");
 			standard = data.getAero();
 			break;
 		case CHEMEX:
+			System.out.println("Analyzing with Chemex");
 			standard = data.getChemex();
 			break;
 		case FRENCHPRESS:
+			System.out.println("Analyzing with Frenchpress");
 			standard = data.getFrenchPress();
 			break;
 		default:
@@ -159,14 +162,12 @@ public class ClassifierMachine {
 				double redExpectation = Math.abs(testred-standardred) / standardred;
 				double blueExpectation = Math.abs(testblue-standardblue) / standardblue;
 				double greenExpectation = Math.abs(testgreen - standardgreen) /standardgreen;
-				if (redExpectation < 0.2 && blueExpectation < 0.2 && greenExpectation < 0.2)
+				if (redExpectation < 0.05 && blueExpectation < 0.05 && greenExpectation < 0.05)
 					countOfPositives[i]++;
-
 				}
 			}
 		boolean[] foldagreement = new boolean[test.length];
-		// 60% of folds must agree, for now
-		// 90% of length must agree for a fold to agree
+		
 		for (int fold = 0; fold < test.length; fold++) {
 			if ((double) countOfPositives[fold] / (double) test[fold].length >= 0.8)
 				foldagreement[fold] = true;

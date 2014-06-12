@@ -24,7 +24,9 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -43,6 +45,7 @@ public class ColorCollector {
 	private ArrayList<File> aeroimages;
 	private ArrayList<File> chemeximages;
 	private ArrayList<File> frenchpressimages;
+	private BufferedWriter datafile;
 
 	// image to analyze
 
@@ -50,22 +53,26 @@ public class ColorCollector {
 	private final int GREEN = 36;
 	private final int BLUE = 37;
 	private final int OFFSET = 35;
-	
+
 	private final int AERO = 50;
 	private final int CHEMEX = 51;
 	private final int FRENCHPRESS = 52;
 	private final int OFFSET_CATEGORIES = 50;
-	
+
 	private double[][][] aerod;
 	private double[][][] chemexd;
 	private double[][][] frenchpressd;
-
 
 	/*
 	 * This will set up all the difference arrays and perform the 5 cross
 	 * validation training
 	 */
 	public ColorCollector() {
+		try {
+			datafile = new BufferedWriter(new FileWriter("datafile.txt"));
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 
 		aeroimages = new ArrayList<File>();
 		chemeximages = new ArrayList<File>();
@@ -172,33 +179,39 @@ public class ColorCollector {
 	 *             when the indicated array is not valid
 	 */
 
-	private void difference(ArrayList<File> imagefiles, int whichArray) throws Exception {
+	private void difference(ArrayList<File> imagefiles, int whichArray)
+			throws Exception {
 		double[][][] foldArray = new double[imagefiles.size()][3][BASE_WIDTH]; // 3
-																				// colors
-		ArrayList<File> otherimages = new ArrayList<File>();
+		ArrayList<File> otherimages; // colors
+
 		// for each of the images
 		for (int i = 0; i < imagefiles.size(); i++) {
+			otherimages = new ArrayList<File>();
 			File testfile = imagefiles.get(i);
 			for (int j = 0; j < imagefiles.size(); j++) {
 				if (i != j) {
 					otherimages.add(imagefiles.get(j));
 				}
 			}
-			//array of (number of images-1)x3x BASE_WIDTH dimensions
+			// array of (number of images-1)x3x BASE_WIDTH dimensions
 			double[][][] preaverages = new double[otherimages.size()][3][BASE_WIDTH];
 
 			for (int j = 0; j < otherimages.size(); j++) {
 				try {
 					preaverages[j] = compareImages(
-							rescale( getBufferedImage (ImageIO.read(testfile) ) ),
-							rescale( getBufferedImage (ImageIO.read(otherimages.get(j) ) ) ) );
+							rescale(getBufferedImage(ImageIO.read(testfile))),
+							rescale(getBufferedImage(ImageIO.read(otherimages
+									.get(j)))));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-			
+
 			foldArray[i] = average(preaverages);
 		}
+		datafile.write(which(whichArray));
+		write(datafile, foldArray);
+		datafile.newLine();
 		switch (whichArray) {
 		case AERO:
 			setAero(foldArray);
@@ -214,19 +227,16 @@ public class ColorCollector {
 		}
 
 	}
-	
-	private void setAero(double[][][] array)
-	{
+
+	private void setAero(double[][][] array) {
 		aerod = array;
 	}
-	
-	private void setChemex(double[][][] array)
-	{
-		chemexd= array;
+
+	private void setChemex(double[][][] array) {
+		chemexd = array;
 	}
-	
-	private void setFrenchPress(double[][][] array)
-	{
+
+	private void setFrenchPress(double[][][] array) {
 		frenchpressd = array;
 	}
 
@@ -258,19 +268,23 @@ public class ColorCollector {
 					averageRed /= distance.length;
 					averageBlue /= distance.length;
 					averageGreen /= distance.length;
-					heightdata[RED-OFFSET][j] = new Color(test.getRGB(i,j)).getRed() - averageRed;
-					heightdata[GREEN-OFFSET][j] = new Color(test.getRGB(i,j)).getGreen() - averageGreen;
-					heightdata[BLUE-OFFSET][j] = new Color(test.getRGB(i,j)).getBlue() - averageBlue;
+					heightdata[RED - OFFSET][j] = new Color(test.getRGB(i, j))
+							.getRed() - averageRed;
+					heightdata[GREEN - OFFSET][j] = new Color(test.getRGB(i, j))
+							.getGreen() - averageGreen;
+					heightdata[BLUE - OFFSET][j] = new Color(test.getRGB(i, j))
+							.getBlue() - averageBlue;
 				}
-				differences[RED-OFFSET][i]= average(heightdata[RED-OFFSET]);
-				differences[GREEN-OFFSET][i]= average(heightdata[GREEN-OFFSET]);
+				differences[RED - OFFSET][i] = average(heightdata[RED - OFFSET]);
+				differences[GREEN - OFFSET][i] = average(heightdata[GREEN
+						- OFFSET]);
 				differences[BLUE - OFFSET][i] = average(heightdata[BLUE
 						- OFFSET]);
 			}
 		} else {
 			imageHeightRatio = (int) ((double) test.getHeight() / (double) template
 					.getHeight());
-			if(imageHeightRatio <1)
+			if (imageHeightRatio < 1)
 				imageHeightRatio = 1;
 			double[][] heightdata = new double[3][test.getHeight()];
 			for (int i = 0; i < template.getWidth(); i++) {
@@ -284,9 +298,9 @@ public class ColorCollector {
 					averageBlue = 0;
 					averageGreen = 0;
 					for (int h = 0; h < distance.length; h++) {
-						averageRed += new Color(distance[i]).getRed();
-						averageBlue += new Color(distance[i]).getBlue();
-						averageGreen += new Color(distance[i]).getGreen();
+						averageRed += new Color(distance[h]).getRed();
+						averageBlue += new Color(distance[h]).getBlue();
+						averageGreen += new Color(distance[h]).getGreen();
 					}
 					averageRed /= distance.length;
 					averageBlue /= distance.length;
@@ -308,68 +322,48 @@ public class ColorCollector {
 		}
 		return differences;
 	}
-	
-	public double average(double[] array)
-	{
+
+	public double average(double[] array) {
 		int length = array.length;
 		double total = 0;
 		for (int i = 0; i < length; i++)
-			total+= array[i];
-		return total/length;
+			total += array[i];
+		return total / length;
 	}
-	
+
 	/*
-	 * returns the average of the image differences
-	 * for the folds
+	 * returns the average of the image differences for the folds
 	 */
-	private double[][] average(double[][][] preaverage)
-	{
+	private double[][] average(double[][][] preaverage) {
 		double[][] averages = new double[3][BASE_WIDTH];
 		double total = 0;
-		for(int i = 0; i < 3; i++) //since we have 3 colors
+		for (int i = 0; i < 3; i++) // since we have 3 colors
 		{
-			for (int j = 0; j<BASE_WIDTH; j++)
-			{
+			for (int j = 0; j < BASE_WIDTH; j++) {
 				total = 0;
-				for(int k = 0; k < preaverage.length; k++)
-				{
-					total+= preaverage[k][i][j];
+				for (int k = 0; k < preaverage.length; k++) {
+					total += preaverage[k][i][j];
 				}
-				total/= (double)preaverage.length;
+				total /= (double) preaverage.length;
 				averages[i][j] = total;
 			}
 		}
 		return averages;
 	}
-	
-	public double[][][] getAero(){
+
+	public double[][][] getAero() {
 		return aerod;
 	}
-	public double[][][] getChemex() { return chemexd;}
-	
-	public double[][][] getFrenchPress() {return frenchpressd;}
 
-
-	// code found on
-	// http://blog.pengoworks.com/index.cfm/2008/2/8/The-nightmares-of-getting-images-from-the-Mac-OS-X-clipboard-using-Java
-	// coverts apple.awt.OSXImage into a BufferedImgage
-	public static BufferedImage getBufferedImage(Image img) {
-		if (img == null)
-			return null;
-		int w = img.getWidth(null);
-		int h = img.getHeight(null);
-		// draw original image to thumbnail image object and
-		// scale it to the new size on-the-fly
-		BufferedImage bufimg = new BufferedImage(w, h,
-				BufferedImage.TYPE_INT_RGB);
-		Graphics2D g2 = bufimg.createGraphics();
-		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g2.drawImage(img, 0, 0, w, h, null);
-		g2.dispose();
-		g2 = null;
-		return bufimg;
+	public double[][][] getChemex() {
+		return chemexd;
 	}
+
+	public double[][][] getFrenchPress() {
+		return frenchpressd;
+	}
+
+	
 
 	public double[][][] test(BufferedImage test, int whichArray) {
 		ArrayList<File> files;
@@ -384,21 +378,80 @@ public class ColorCollector {
 		case (FRENCHPRESS - OFFSET_CATEGORIES):
 			files = frenchpressimages;
 			break;
-
-		// make the default case just use aero
 		default:
-			files = aeroimages;
+			files = null;
 			break;
 		}
-		
+
 		testArray = new double[files.size()][3][BASE_WIDTH];
-		for (int i = 0; i < files.size(); i++){
+		for (int i = 0; i < files.size(); i++) {
 			try {
-				testArray[i] = compareImages(test, getBufferedImage( ImageIO.read(files.get(i))));
+				testArray[i] = compareImages(test,
+						getBufferedImage(ImageIO.read(files.get(i))));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 		return testArray;
 	}
+
+	/**
+	 * shows what is being calculated when loading up the training data
+	 * @param which
+	 * @return
+	 */
+	private String which(int which) {
+		switch (which) {
+		case AERO:
+			return "Aero";
+		case CHEMEX:
+			return "Chemex";
+		case FRENCHPRESS:
+			return "FrenchPress";
+		default:
+			return "Not valid";
+		}
+	}
+
+	/**
+	 * Writes the data in the array
+	 * @param writer
+	 * @param data
+	 * @throws IOException
+	 */
+	private void write(BufferedWriter writer, double[][][] data)
+			throws IOException {
+		String s;
+		for (int i = 0; i < data.length; i++) {
+			for (int j = 0; j < 3; j++) // 3 colors
+			{
+				for (int k = 0; k < data[i][j].length; k++) {
+					s = data[i][j][k] + " ";
+					writer.write(s);
+				}
+			}
+			writer.newLine();
+		}
+	}
+	
+	// code found on
+		// http://blog.pengoworks.com/index.cfm/2008/2/8/The-nightmares-of-getting-images-from-the-Mac-OS-X-clipboard-using-Java
+		// coverts apple.awt.OSXImage into a BufferedImgage
+		public static BufferedImage getBufferedImage(Image img) {
+			if (img == null)
+				return null;
+			int w = img.getWidth(null);
+			int h = img.getHeight(null);
+			// draw original image to thumbnail image object and
+			// scale it to the new size on-the-fly
+			BufferedImage bufimg = new BufferedImage(w, h,
+					BufferedImage.TYPE_INT_RGB);
+			Graphics2D g2 = bufimg.createGraphics();
+			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2.drawImage(img, 0, 0, w, h, null);
+			g2.dispose();
+			g2 = null;
+			return bufimg;
+		}
 }
