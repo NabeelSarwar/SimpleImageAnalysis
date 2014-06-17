@@ -98,6 +98,7 @@ public class ClassifierMachine {
 						+ " match for Frenchpress	"
 						+ analyze(frenchpresstest, FRENCHPRESS));
 				output.newLine();
+				output.newLine();
 			} catch (IOException e) {
 				e.printStackTrace(); // this try/catch is here in case output
 										// was not able to be opened
@@ -158,7 +159,7 @@ public class ClassifierMachine {
 				testgreen = test[fold][GREEN][i];
 				standardred = standard[fold][RED][i];
 				standardblue = standard[fold][BLUE][i];
-				standardgreen = test[fold][GREEN][i];
+				standardgreen = standard[fold][GREEN][i];
 				double redExpectation = Math.abs(testred-standardred) / standardred;
 				double blueExpectation = Math.abs(testblue-standardblue) / standardblue;
 				double greenExpectation = Math.abs(testgreen - standardgreen) /standardgreen;

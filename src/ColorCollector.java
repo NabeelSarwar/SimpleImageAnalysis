@@ -20,9 +20,12 @@
  *
  */
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -198,10 +201,9 @@ public class ColorCollector {
 
 			for (int j = 0; j < otherimages.size(); j++) {
 				try {
-					preaverages[j] = compareImages(
-							rescale(getBufferedImage(ImageIO.read(testfile))),
-							rescale(getBufferedImage(ImageIO.read(otherimages
-									.get(j)))));
+					BufferedImage test = rescale(downsample(rotation(translation(getBufferedImage(ImageIO.read(testfile))))));
+					BufferedImage other = rescale(downsample(rotation(translation(getBufferedImage(ImageIO.read(otherimages.get(j)))))));
+					preaverages[j] = compareImages(test, other);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -363,8 +365,6 @@ public class ColorCollector {
 		return frenchpressd;
 	}
 
-	
-
 	public double[][][] test(BufferedImage test, int whichArray) {
 		ArrayList<File> files;
 		double[][][] testArray;
@@ -397,6 +397,7 @@ public class ColorCollector {
 
 	/**
 	 * shows what is being calculated when loading up the training data
+	 * 
 	 * @param which
 	 * @return
 	 */
@@ -415,6 +416,7 @@ public class ColorCollector {
 
 	/**
 	 * Writes the data in the array
+	 * 
 	 * @param writer
 	 * @param data
 	 * @throws IOException
@@ -433,25 +435,120 @@ public class ColorCollector {
 			writer.newLine();
 		}
 	}
-	
+
 	// code found on
-		// http://blog.pengoworks.com/index.cfm/2008/2/8/The-nightmares-of-getting-images-from-the-Mac-OS-X-clipboard-using-Java
-		// coverts apple.awt.OSXImage into a BufferedImgage
-		public static BufferedImage getBufferedImage(Image img) {
-			if (img == null)
-				return null;
-			int w = img.getWidth(null);
-			int h = img.getHeight(null);
-			// draw original image to thumbnail image object and
-			// scale it to the new size on-the-fly
-			BufferedImage bufimg = new BufferedImage(w, h,
-					BufferedImage.TYPE_INT_RGB);
-			Graphics2D g2 = bufimg.createGraphics();
-			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			g2.drawImage(img, 0, 0, w, h, null);
-			g2.dispose();
-			g2 = null;
-			return bufimg;
+	// http://blog.pengoworks.com/index.cfm/2008/2/8/The-nightmares-of-getting-images-from-the-Mac-OS-X-clipboard-using-Java
+	// coverts apple.awt.OSXImage into a BufferedImgage
+	public static BufferedImage getBufferedImage(Image img) {
+		if (img == null)
+			return null;
+		int w = img.getWidth(null);
+		int h = img.getHeight(null);
+		// draw original image to thumbnail image object and
+		// scale it to the new size on-the-fly
+		BufferedImage bufimg = new BufferedImage(w, h,
+				BufferedImage.TYPE_INT_RGB);
+		Graphics2D g2 = bufimg.createGraphics();
+		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g2.drawImage(img, 0, 0, w, h, null);
+		g2.dispose();
+		g2 = null;
+		return bufimg;
+	}
+
+	private BufferedImage downsample(BufferedImage input) {
+		int width = input.getWidth();
+		int height = input.getHeight();
+		int red;
+		int green;
+		int blue;
+		int rgb;
+		Color middle;
+		Color top;
+		Color left;
+		Color right;
+		Color down;
+		Color topleft;
+		Color topright;
+		Color downleft;
+		Color downright;
+		for (int w = 1; w < width - 1; w++) {
+			for (int h = 1; h < height - 1; h++) {
+				middle = new Color(input.getRGB(w, h));
+				top = new Color(input.getRGB(w, h - 1));
+				left = new Color(input.getRGB(w - 1, h));
+				right = new Color(input.getRGB(w + 1, h));
+				down = new Color(input.getRGB(w, h+1));
+				topleft = new Color(input.getRGB(w - 1, h-1));
+				topright = new Color(input.getRGB(w + 1, h-1));
+				downleft  = new Color(input.getRGB(w -1, h+1));
+				downright = new Color(input.getRGB(w+1, h+1));
+				red = (int) ((middle.getRed() + top.getRed() + left.getRed() + right.getRed() + down.getRed() +
+						topleft.getRed() + topright.getRed() + downleft.getRed() + downright.getRed() ) / 9.0);
+				green = (int) ((middle.getGreen() + top.getGreen() + left.getGreen() + right.getGreen() + down.getGreen() +
+						topleft.getGreen() + topright.getGreen() + downleft.getGreen() + downright.getGreen() ) / 9.0);
+				blue = (int) ((middle.getBlue() + top.getBlue() + left.getBlue() + right.getBlue() + down.getBlue() +
+						topleft.getBlue() + topright.getBlue() + downleft.getBlue() + downright.getBlue() ) / 9.0);
+				rgb = new Color(red,green,blue).getRGB();
+				input.setRGB(w,h,rgb);
+			}
 		}
+		return input;
+	}
+
+	/**
+	 * grays out an image
+	 * @param input
+	 * @return
+	 */
+	private BufferedImage grayed(BufferedImage input) {
+		BufferedImage converted = new BufferedImage(input.getWidth(), input.getHeight(),BufferedImage.TYPE_BYTE_GRAY);
+		Graphics g = converted.getGraphics();
+		g.drawImage(input, 0, 0, null);
+		g.dispose();
+		return converted;
+	}
+
+	/**
+	 * @param input
+	 * @return
+	 */
+	private BufferedImage translation(BufferedImage input) {
+		int horizontalMovement = (int) ( input.getWidth() * (Math.random() * 0.2));
+		int verticalMovement = (int) (input.getHeight() *Math.random() * 0.2);
+		return input.getSubimage(horizontalMovement, verticalMovement, input.getWidth() - horizontalMovement *2, 
+				input.getHeight() -verticalMovement*2);
+
+	}
+
+	private BufferedImage rotation(BufferedImage input) {
+		final int norotation =1;
+		final int clockwise = 2;
+		final int doublexclockwise = 3;
+		final int triplexclockwise = 4;
+		int roll  = (int) (Math.round(Math.random() *4) + 1);
+		AffineTransform transform;
+		AffineTransformOp filter;
+		switch (roll)
+		{
+		case clockwise:
+			transform = new AffineTransform();
+			transform.rotate(Math.PI/2, input.getWidth()/2, input.getHeight() /2);
+			filter = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+			return filter.filter(input, null);
+		case doublexclockwise:
+			transform = new AffineTransform();
+			transform.rotate(Math.PI, input.getWidth()/2, input.getHeight() /2);
+			filter = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+			return filter.filter(input, null);
+		case triplexclockwise: 
+			transform = new AffineTransform();
+			transform.rotate(Math.PI * 3.0/4.0, input.getWidth()/2, input.getHeight() /2);
+			filter = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+			return filter.filter(input, null);
+		default: //case as norotation, the outcome was 1
+			return input;
+		}
+	}
 }
